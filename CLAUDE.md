@@ -98,6 +98,8 @@ src/
 
 ## Development
 
+**Rust edition:** 2024
+
 ### Build & Run
 
 ```bash
@@ -140,6 +142,7 @@ Create test package in `tests/fixtures/reading/` for E2E tests.
 
 ## Code Style
 
+- Always use `cargo add` for dependencies, never edit Cargo.toml manually
 - Use `thiserror` for error types
 - Prefer `?` over `.unwrap()`
 - Keep functions small and focused
