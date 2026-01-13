@@ -1,5 +1,7 @@
+mod cache;
 mod manifest;
 
+use cache::Cache;
 use clap::{Parser, Subcommand};
 use manifest::{LockFile, PackageManifest, ProjectManifest};
 use std::fs;
@@ -125,6 +127,27 @@ fn install(package_path: &Path) {
 
     println!("Installing {} v{}...", pkg_name, pkg_version);
 
+    // Initialize cache
+    let cache = match Cache::new() {
+        Ok(c) => c,
+        Err(e) => {
+            eprintln!("Failed to initialize cache: {}", e);
+            std::process::exit(1);
+        }
+    };
+
+    // Cache the package
+    let cached_path = match cache.cache_package(&package_path, pkg_name, pkg_version) {
+        Ok(p) => {
+            println!("  Cached to {}", p.display());
+            p
+        }
+        Err(e) => {
+            eprintln!("Failed to cache package: {}", e);
+            std::process::exit(1);
+        }
+    };
+
     // Load or check project manifest
     let project_toml = Path::new("shot.toml");
     let mut project_manifest = if project_toml.exists() {
@@ -150,8 +173,8 @@ fn install(package_path: &Path) {
         }
     };
 
-    // Find and copy commands
-    let commands_dir = package_path.join("commands");
+    // Find and copy commands from cache
+    let commands_dir = cached_path.join("commands");
     let target_dir = Path::new(".claude/commands");
 
     let mut count = 0;
